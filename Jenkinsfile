@@ -12,6 +12,17 @@ pipeline {
                 git credentialsId: 'axel', url: 'https://github.com/AxelGiff/HelloWorldMaven.git'
             }
         }
+        stage('Tag Git') {
+            steps {
+                script {
+                    sh 'git config --global user.name "AxelGiff"'
+                    sh 'git config --global user.email "axel.giffard95@gmail.com"'
+                    sh 'git tag -a v-${BUILD_NUMBER} -m "Jenkins Git plugin tagging with v-${BUILD_NUMBER}"'
+                    sh 'git push origin v-${BUILD_NUMBER}'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 withMaven(maven: 'apache-maven-3.6.0') {
