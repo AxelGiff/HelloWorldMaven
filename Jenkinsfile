@@ -1,52 +1,51 @@
-pipeline { 
-    agent any 
+pipeline {
+    agent any
+    tools {
+        maven 'apache-maven-3.6.0' // Assurez-vous que cette version est configurée dans Jenkins
+    }
+    environment {
+        SONARQUBE_ENV = 'sonar.tools.devops.****' // Nom de l'environnement SonarQube configuré dans Jenkins
+    }
     stages {
-        stage('Build') { 
+        stage('Checkout') {
             steps {
-                withMaven(maven : 'apache-maven-3.6.0'){
-                        sh "mvn clean compile"
-			sh "mvn package"
+                git credentialsId: 'axel', url: 'https://github.com/AxelGiff/HelloWorldMaven.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                withMaven(maven: 'apache-maven-3.6.0') {
+                    sh "mvn clean compile"
+                    sh "mvn package"
                 }
             }
         }
-	stage('Checkout'){
-	    steps {
-	        git credentialsId: 'axel', url: 'https://github.com/AxelGiff/HelloWorldMaven.git'
-
-	    }
-	}
-	    
-        stage('Test'){
+        stage('Test') {
             steps {
-                withMaven(maven : 'apache-maven-3.6.0'){
-                        sh "mvn test"
-                }
-
-            }
-        }
-        stage('build && SonarQube analysis') {
-            steps {
-                withSonarQubeEnv('sonar.tools.devops.****') {
-                    sh 'sonar-scanner -Dsonar.projectKey=myProject -Dsonar.sources=./src'
+                withMaven(maven: 'apache-maven-3.6.0') {
+                    sh "mvn test"
                 }
             }
         }
-        stage("Quality Gate") {
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv(SONARQUBE_ENV) {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=myProject -Dsonar.sources=./src'
+                }
+            }
+        }
+        stage('Quality Gate') {
             steps {
                 timeout(time: 1, unit: 'HOURS') {
-                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
-                    // true = set pipeline to UNSTABLE, false = don't
-                    // Requires SonarScanner for Jenkins 2.7+
                     waitForQualityGate abortPipeline: true
                 }
             }
-			}
+        }
         stage('Deploy') {
             steps {
-               withMaven(maven : 'apache-maven-3.6.0'){
-                        sh "mvn deploy"
+                withMaven(maven: 'apache-maven-3.6.0') {
+                    sh "mvn deploy"
                 }
-
             }
         }
     }
