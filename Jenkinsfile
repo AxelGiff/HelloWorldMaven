@@ -17,7 +17,7 @@ pipeline {
                 withMaven(maven: 'apache-maven-3.6.0') {
                     sh "mvn clean compile"
                     sh "mvn package"
-                    sh "mvn exec:java"
+                    sh "mvn exec:java -Dexec.mainClass=com.test.HelloWorldMaven.App"
                 }
             }
         }
