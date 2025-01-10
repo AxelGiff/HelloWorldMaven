@@ -5,9 +5,17 @@ pipeline {
             steps {
                 withMaven(maven : 'apache-maven-3.6.0'){
                         sh "mvn clean compile"
+			sh "mvn package"
                 }
             }
         }
+	stage('Checkout'){
+	    steps {
+	        git credentialsId: 'axel', url: 'https://github.com/AxelGiff/HelloWorldMaven.git'
+
+	    }
+	}
+	    
         stage('Test'){
             steps {
                 withMaven(maven : 'apache-maven-3.6.0'){
