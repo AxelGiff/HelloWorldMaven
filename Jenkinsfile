@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        MAVEN_HOME = tool 'apache-maven-3.6.0'
-        GIT_CREDENTIALS = 'a4fbac54-ac6e-4a96-9c40-ee8677c29110'  // Remplace par ton ID de credential si nécessaire
+    MAVEN_HOME = tool 'Maven3'  // Utilise le nom exact de la version de Maven configurée
+    GIT_CREDENTIALS = 'a4fbac54-ac6e-4a96-9c40-ee8677c29110'  // Remplace par ton ID de credential si nécessaire
     }
 
     stages {
