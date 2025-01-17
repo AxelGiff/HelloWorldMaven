@@ -10,6 +10,10 @@ pipeline {
         stage('Checkout') {
             steps {
                 git credentialsId: 'axel', url: 'https://github.com/AxelGiff/HelloWorldMaven.git'
+                sh '''
+                git config --global user.name "AxelGiff"
+                git config --global user.email "axel.giffard95@gmail.com"
+                '''
             }
         }
         stage('Build') {
