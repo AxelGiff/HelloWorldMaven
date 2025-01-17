@@ -1,55 +1,89 @@
 pipeline {
     agent any
-    tools {
-        maven 'apache-maven-3.6.0' // Assurez-vous que cette version est configurée dans Jenkins
-    }
+
     environment {
-        SONARQUBE_ENV = 'sonar.tools.devops.****' // Nom de l'environnement SonarQube configuré dans Jenkins
+        MAVEN_HOME = tool 'apache-maven-3.6.0'
+        GIT_CREDENTIALS = 'a4fbac54-ac6e-4a96-9c40-ee8677c29110'  // Remplace par ton ID de credential si nécessaire
     }
+
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'axel', url: 'https://github.com/AxelGiff/HelloWorldMaven.git'
-                sh '''
-                git config --global user.name "AxelGiff"
-                git config --global user.email "axel.giffard95@gmail.com"
-                '''
+                script {
+                    checkout scm  // Récupère le code depuis Git
+                }
             }
         }
+
+        stage('Install Maven') {
+            steps {
+                script {
+                    // Installation de Maven sur Jenkins
+                    tool name: 'apache-maven-3.6.0', type: 'Maven'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
-                withMaven(maven: 'apache-maven-3.6.0') {
-                    sh "mvn clean compile package"
+                script {
+                    // Compilation du projet Maven
+                    sh "'${MAVEN_HOME}/bin/mvn' clean install"
                 }
             }
         }
+
         stage('Test') {
             steps {
-                withMaven(maven: 'apache-maven-3.6.0') {
-                    sh "mvn test"
+                script {
+                    // Exécution des tests unitaires
+                    sh "'${MAVEN_HOME}/bin/mvn' test"
                 }
             }
         }
+
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv(SONARQUBE_ENV) {
-                    sh 'mvn sonar:sonar -Dsonar.projectKey=myProject -Dsonar.sources=./src'
+                script {
+                    // Effectuer l'analyse avec SonarQube
+                    withSonarQubeEnv('SonarQube') { 
+                        sh "'${MAVEN_HOME}/bin/mvn' sonar:sonar"
+                    }
                 }
             }
         }
+
         stage('Quality Gate') {
             steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: true
+                script {
+                    // Vérification de l'état de la qualité après l'analyse SonarQube
+                    waitForQualityGate()
                 }
             }
         }
+
         stage('Deploy') {
             steps {
-                withMaven(maven: 'apache-maven-3.6.0') {
-                    sh "mvn deploy"
+                script {
+                    // Déploiement (exemple d'un déploiement simple)
+                    sh 'echo "Déploiement en cours..."'  // Remplacer par ton script de déploiement
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            // Actions à effectuer après l'exécution du pipeline, peu importe le résultat
+            cleanWs()  // Nettoyage de l'espace de travail
+        }
+        success {
+            // Actions en cas de succès
+            echo 'Pipeline terminé avec succès !'
+        }
+        failure {
+            // Actions en cas d'échec
+            echo 'Le pipeline a échoué.'
         }
     }
 }
